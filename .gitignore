@@ -98,6 +98,11 @@ InitTestScene*.unity*
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
 
-# TextMeshPro
-#########################
-Assets/TextMesh Pro/Resources/*.asset
+## Custom ignores ##
+# Assets
+Assets/TextMesh Pro
+Assets/Scenes
+Assets/*.meta
+.vscode/
+Packages/
+ProjectSettings/
