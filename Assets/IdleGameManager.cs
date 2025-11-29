@@ -12,10 +12,16 @@ public class IdleGameManager : MonoBehaviour
 
     void Update()
     {
-        // On ajoute des pièces en fonction du temps écoulé
+        // Gain automatique (idle)
         coins += coinsPerSecond * Time.deltaTime;
 
         // On met à jour le texte à l'écran
         coinsText.text = "Pièces : " + Mathf.FloorToInt(coins);
+    }
+
+    // appelée quand on clique sur la fleur
+    public void AddCoins(float amount)
+    {
+        coins += amount;
     }
 }
