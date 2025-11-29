@@ -101,7 +101,7 @@ InitTestScene*.unity*
 ## Custom ignores ##
 # Assets
 Assets/TextMesh Pro
-Assets/Scenes
+Assets/Scenes/*.meta
 Assets/*.meta
 .vscode/
 Packages/
