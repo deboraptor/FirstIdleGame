@@ -101,7 +101,10 @@ InitTestScene*.unity*
 ## Custom ignores ##
 # Assets
 Assets/TextMesh Pro
+Assets/Scenes/*.unity
 Assets/Scenes/*.meta
+Assets/Prefabs/*.meta
+Assets/Prefabs/*.prefab
 Assets/*.meta
 .vscode/
 Packages/
