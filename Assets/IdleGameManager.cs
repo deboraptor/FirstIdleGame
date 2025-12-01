@@ -47,72 +47,79 @@ public class IdleGameManager : MonoBehaviour
     Debug.Log("AddCoins(" + amount + ")  → total = " + coins);
     }
 
-
     // ACHAT D'UNE FLEUR PRÉCISE (appelé par les boutons du shop)
     public void BuyFlowerByIndex(int index)
     {
-        // 1) On vérifie que c'est bien la prochaine fleur dans l'ordre
-        if (index != nextFlowerIndex)
-        {
-            Debug.Log("Tu dois d'abord acheter la fleur précédente !");
-            return;
-        }
+    // 0) sécurité : index valide ?
+    if (index < 0 || index >= flowerPrefabs.Length)
+        return;
 
-        // 2) Encore une place dispo ?
-        if (flowersBought >= flowerSpots.Length)
-        {
-            Debug.Log("Plus de place pour de nouvelles fleurs !");
-            UpdateButtonsInteractable();
-            return;
-        }
+    // 1) progression : on ne peut acheter que la "prochaine" fleur
+    if (index != nextFlowerIndex)
+    {
+        Debug.Log("Tu dois d'abord acheter la fleur précédente !");
+        return;
+    }
 
-        // 3) On récupère le prefab
-        if (index < 0 || index >= flowerPrefabs.Length)
-            return;
-
-        GameObject prefab = flowerPrefabs[index];
-
-        // 4) On lit son prix sur le FlowerClicker
-        FlowerClicker prefabData = prefab.GetComponent<FlowerClicker>();
-        if (prefabData == null)
-        {
-            Debug.LogError("Le prefab " + prefab.name + " n'a pas de FlowerClicker !");
-            return;
-        }
-
-        float price = prefabData.price;
-
-        // 5) Assez de pièces ?
-        if (coins < price)
-        {
-            Debug.Log("Pas assez de pièces pour acheter " + prefab.name + " (prix : " + price + ")");
-            return;
-        }
-
-        // 6) On paye
-        coins -= price;
-
-        // 7) On instancie sur le prochain spot
-        Transform spot = flowerSpots[flowersBought];
-        GameObject newFlower = Instantiate(prefab, spot.position, Quaternion.identity);
-
-        // 8) On relie le GameManager
-        FlowerClicker fc = newFlower.GetComponent<FlowerClicker>();
-        if (fc != null)
-            fc.gameManager = this;
-
-        // 9) Ordre d'affichage
-        SpriteRenderer sr = newFlower.GetComponent<SpriteRenderer>();
-        if (sr != null)
-            sr.sortingOrder = flowersBought;
-
-        flowersBought++;
-
-        // 10) On passe à la fleur suivante
-        nextFlowerIndex++;
-
-        // 11) Met à jour les boutons (grise celui acheté, active le suivant, etc.)
+    // 2) encore une place dispo ?
+    if (flowersBought >= flowerSpots.Length)
+    {
+        Debug.Log("Plus de place pour de nouvelles fleurs !");
         UpdateButtonsInteractable();
+        return;
+    }
+
+    // 3) on récupère le prefab
+    GameObject prefab = flowerPrefabs[index];
+
+    // 4) on lit son prix
+    FlowerClicker prefabData = prefab.GetComponent<FlowerClicker>();
+    if (prefabData == null)
+    {
+        Debug.LogError("Le prefab " + prefab.name + " n'a pas de FlowerClicker !");
+        return;
+    }
+
+    float price = prefabData.price;
+
+    // 5) assez de pièces ?
+    if (coins < price)
+    {
+        Debug.Log("Pas assez de pièces pour acheter " + prefab.name + " (prix : " + price + ")");
+        return;
+    }
+
+    // 6) on paye
+    coins -= price;
+
+    // 7) on instancie sur le prochain SPOT
+    Transform spot = flowerSpots[flowersBought];
+
+    Debug.Log("Je spawn " + prefab.name + " sur " + spot.name + " à la position " + spot.position);
+
+    GameObject newFlower = Instantiate(prefab, spot.position, Quaternion.identity, spot);
+
+    // on centre par rapport au spot
+    newFlower.transform.localPosition = Vector3.zero;
+
+    // 8) lien avec le GameManager
+    FlowerClicker fc = newFlower.GetComponent<FlowerClicker>();
+    if (fc != null)
+        fc.gameManager = this;
+
+    // 9) ordre d'affichage
+    SpriteRenderer sr = newFlower.GetComponent<SpriteRenderer>();
+    if (sr != null)
+        sr.sortingOrder = flowersBought;
+
+    // 10) on passe au spot suivant
+    flowersBought++;
+
+    // 11) on passe à la fleur suivante du shop
+    nextFlowerIndex++;
+
+    // 12) on met à jour quels boutons sont cliquables
+    UpdateButtonsInteractable();
     }
 
     // Active/désactive les boutons selon la progression
