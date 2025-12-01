@@ -8,3 +8,4 @@ J'aimerais designer mes assets moi-même, on verra ce que ça donne
 
 # Sources
 Fleurs -> https://jennpixel.itch.io/free-flower-pack-12-icons 
+Background -> https://craftpix.net/freebies/free-nature-backgrounds-pixel-art/?num=1&count=205&sq=nature%20background&pos=2 
