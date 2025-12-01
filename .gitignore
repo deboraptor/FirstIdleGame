@@ -109,3 +109,4 @@ Assets/*.meta
 .vscode/
 Packages/
 ProjectSettings/
+Assets/Scenes/SampleScene.unity
