@@ -43,86 +43,100 @@ public class IdleGameManager : MonoBehaviour
 
     public void AddCoins(float amount)
     {
-    coins += amount;
-    Debug.Log("AddCoins(" + amount + ")  → total = " + coins);
+        coins += amount;
+        Debug.Log("AddCoins(" + amount + ")  → total = " + coins);
+
+        // On met à jour les boutons dès que les coins changent
+        UpdateButtonsInteractable();
     }
 
-    // ACHAT D'UNE FLEUR PRÉCISE (appelé par les boutons du shop)
     public void BuyFlowerByIndex(int index)
     {
-    // 0) sécurité : index valide ?
-    if (index < 0 || index >= flowerPrefabs.Length)
-        return;
+        Debug.Log("=== BuyFlowerByIndex() APPELÉ ===");
+        Debug.Log("Index demandé : " + index + " | coins AVANT = " + coins);
 
-    // 1) progression : on ne peut acheter que la "prochaine" fleur
-    if (index != nextFlowerIndex)
-    {
-        Debug.Log("Tu dois d'abord acheter la fleur précédente !");
-        return;
-    }
+        // 0) sécurité : index valide ?
+        if (index < 0 || index >= flowerPrefabs.Length)
+        {
+            Debug.LogWarning("Index invalide : " + index);
+            return;
+        }
 
-    // 2) encore une place dispo ?
-    if (flowersBought >= flowerSpots.Length)
-    {
-        Debug.Log("Plus de place pour de nouvelles fleurs !");
+        // 1) progression : on ne peut acheter que la "prochaine" fleur
+        if (index != nextFlowerIndex)
+        {
+            Debug.Log("Tu dois d'abord acheter la fleur précédente !");
+            return;
+        }
+
+        // 2) encore une place dispo ?
+        if (flowersBought >= flowerSpots.Length)
+        {
+            Debug.Log("Plus de place pour de nouvelles fleurs !");
+            UpdateButtonsInteractable();
+            return;
+        }
+
+        // 3) on récupère le prefab
+        GameObject prefab = flowerPrefabs[index];
+
+        // 4) on lit son prix
+        FlowerClicker prefabData = prefab.GetComponent<FlowerClicker>();
+        if (prefabData == null)
+        {
+            Debug.LogError("Le prefab " + prefab.name + " n'a pas de FlowerClicker !");
+            return;
+        }
+
+        float price = prefabData.price;
+        Debug.Log("Prix de la fleur [" + prefab.name + "] = " + price);
+
+        // 5) assez de pièces ?
+        if (coins < price)
+        {
+            Debug.Log("❌ Pas assez de pièces : coins = " + coins + " < price = " + price);
+            return;
+        }
+
+        Debug.Log("✅ Achat accepté ! coins AVANT paiement = " + coins);
+
+        // 6) on paye
+        coins -= price;
+        Debug.Log("coins APRÈS paiement = " + coins);
+
+        // 7) on instancie sur le prochain SPOT
+        Transform spot = flowerSpots[flowersBought];
+
+        Debug.Log("Je spawn " + prefab.name + " sur " + spot.name + " à la position " + spot.position);
+
+        GameObject newFlower = Instantiate(prefab, spot.position, Quaternion.identity, spot);
+
+        // on centre par rapport au spot
+        newFlower.transform.localPosition = Vector3.zero;
+
+        // 8) lien avec le GameManager
+        FlowerClicker fc = newFlower.GetComponent<FlowerClicker>();
+        if (fc != null)
+            fc.gameManager = this;
+
+        // 9) ordre d'affichage
+        SpriteRenderer sr = newFlower.GetComponent<SpriteRenderer>();
+        if (sr != null)
+            sr.sortingOrder = flowersBought;
+
+        // 10) on passe au spot suivant
+        flowersBought++;
+
+        // 11) on passe à la fleur suivante du shop
+        nextFlowerIndex++;
+
+        // 12) on met à jour quels boutons sont cliquables
         UpdateButtonsInteractable();
-        return;
+            
+        Debug.Log(">>> BuyFlowerByIndex appelé, index = " + index + " | coins = " + coins);
     }
 
-    // 3) on récupère le prefab
-    GameObject prefab = flowerPrefabs[index];
-
-    // 4) on lit son prix
-    FlowerClicker prefabData = prefab.GetComponent<FlowerClicker>();
-    if (prefabData == null)
-    {
-        Debug.LogError("Le prefab " + prefab.name + " n'a pas de FlowerClicker !");
-        return;
-    }
-
-    float price = prefabData.price;
-
-    // 5) assez de pièces ?
-    if (coins < price)
-    {
-        Debug.Log("Pas assez de pièces pour acheter " + prefab.name + " (prix : " + price + ")");
-        return;
-    }
-
-    // 6) on paye
-    coins -= price;
-
-    // 7) on instancie sur le prochain SPOT
-    Transform spot = flowerSpots[flowersBought];
-
-    Debug.Log("Je spawn " + prefab.name + " sur " + spot.name + " à la position " + spot.position);
-
-    GameObject newFlower = Instantiate(prefab, spot.position, Quaternion.identity, spot);
-
-    // on centre par rapport au spot
-    newFlower.transform.localPosition = Vector3.zero;
-
-    // 8) lien avec le GameManager
-    FlowerClicker fc = newFlower.GetComponent<FlowerClicker>();
-    if (fc != null)
-        fc.gameManager = this;
-
-    // 9) ordre d'affichage
-    SpriteRenderer sr = newFlower.GetComponent<SpriteRenderer>();
-    if (sr != null)
-        sr.sortingOrder = flowersBought;
-
-    // 10) on passe au spot suivant
-    flowersBought++;
-
-    // 11) on passe à la fleur suivante du shop
-    nextFlowerIndex++;
-
-    // 12) on met à jour quels boutons sont cliquables
-    UpdateButtonsInteractable();
-    }
-
-    // Active/désactive les boutons selon la progression
+    // Active/désactive les boutons selon la progression + l'argent
     void UpdateButtonsInteractable()
     {
         bool hasFreeSpot = flowersBought < flowerSpots.Length;
@@ -132,8 +146,23 @@ public class IdleGameManager : MonoBehaviour
             if (flowerButtons[i] == null)
                 continue;
 
-            // On ne peut cliquer que sur la fleur "suivante"
-            bool canBuyThisOne = (i == nextFlowerIndex) && hasFreeSpot;
+            bool canBuyThisOne = false;
+
+            // On ne peut acheter que la fleur suivante ET s’il reste une place
+            if (i == nextFlowerIndex && hasFreeSpot)
+            {
+                GameObject prefab = flowerPrefabs[i];
+                FlowerClicker data = prefab.GetComponent<FlowerClicker>();
+
+                if (data != null)
+                {
+                    float price = data.price;
+                    Debug.Log("Check bouton " + i + " : coins = " + coins + ", price = " + price);
+
+                    // Bouton cliquable seulement si on a assez de pièces
+                    canBuyThisOne = (coins >= price);
+                }
+            }
 
             flowerButtons[i].interactable = canBuyThisOne;
         }
