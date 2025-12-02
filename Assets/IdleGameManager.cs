@@ -5,7 +5,10 @@ using TMPro;
 using UnityEngine.UI;   // <--- IMPORTANT pour Button
 
 public class IdleGameManager : MonoBehaviour
-{
+{   
+    [Header("FX")]
+    public GameObject coinPopupPrefab;
+
     [Header("UI")]
     public TextMeshProUGUI coinsText;   // Texte "Pièces : X"
     public GameObject shopPanel;        // Panel du shop
@@ -22,6 +25,7 @@ public class IdleGameManager : MonoBehaviour
 
     private int flowersBought = 0;      // nombre de fleurs déjà placées
     private int nextFlowerIndex = 0;    // index de la prochaine fleur à acheter
+    public ParticleSystem clickFx; 
 
     void Start()
     {
@@ -38,6 +42,24 @@ public class IdleGameManager : MonoBehaviour
         if (coinsText != null)
         {
             coinsText.text = "Pièces : " + Mathf.FloorToInt(coins);
+        }
+    }
+
+    public void SpawnCoinPopup(Vector3 worldPos, float amount)
+    {
+        if (coinPopupPrefab == null)
+            return;
+
+        float height = 1.2f; 
+
+        Vector3 spawnPos = worldPos + new Vector3(0f, height, 0f);
+
+        GameObject go = Instantiate(coinPopupPrefab, spawnPos, Quaternion.identity);
+
+        FloatingCoin fc = go.GetComponent<FloatingCoin>();
+        if (fc != null)
+        {
+            fc.Init(amount);
         }
     }
 
