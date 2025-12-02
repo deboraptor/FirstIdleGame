@@ -17,9 +17,11 @@ public class FloatingCoin : MonoBehaviour
         if (text != null)
             text.text = "+" + amount;
     }
+    Vector3 initialScale;
 
     void Awake()
     {
+        initialScale = transform.localScale;
         spriteRenderers = GetComponentsInChildren<SpriteRenderer>();
     }
 
@@ -32,22 +34,7 @@ public class FloatingCoin : MonoBehaviour
 
         // scale
         float t = timer / lifetime;
-        transform.localScale = Vector3.one * Mathf.Lerp(startScale, endScale, t);
-
-        // fade-out (alpha)
-        float alpha = 1f - t;
-        foreach (var sr in spriteRenderers)
-        {
-            var c = sr.color;
-            c.a = alpha;
-            sr.color = c;
-        }
-        if (text != null)
-        {
-            var c = text.color;
-            c.a = alpha;
-            text.color = c;
-        }
+        transform.localScale = initialScale * Mathf.Lerp(startScale, endScale, t);
 
         // fin de vie
         if (timer >= lifetime)
