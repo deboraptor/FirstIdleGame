@@ -19,6 +19,7 @@ public class FlowerClicker : MonoBehaviour
 
     private float idleTimer = 0f;
     private FlowerPop flowerPop;
+    public bool isClickable = true;   // seul la première fleur aura ça activé
 
     void Awake()
     {
@@ -61,7 +62,7 @@ public class FlowerClicker : MonoBehaviour
 
     void OnMouseDown()
     {
-        if (gameManager == null)
+        if (!isClickable)
             return;
 
         // 1) gain de pièces + popup
